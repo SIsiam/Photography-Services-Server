@@ -20,9 +20,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+  res.send({
+    status: 200,
+    message: 'Photography Server is Ok '
+  })
 
+})
 
 
 const MongoClient = require('mongodb').MongoClient;
@@ -30,8 +33,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect(err => {
 
-  console.log('mongo err kaise re : ', err);
-
+  console.log('mongo Mama error kaise re: ', err);
 
 
   const servicesCollection = client.db("photographyService").collection("services");
@@ -41,9 +43,7 @@ client.connect(err => {
   console.log("Database connected");
 
 
-
-
-  // perform actions on the collection object
+  // perform actions on the collection of object
 
   app.get('/allServices', (req, res) => {
     servicesCollection.find({})
@@ -71,17 +71,7 @@ client.connect(err => {
   })
 
 
-
-
-  app.get('/reviews', (req, res) => {
-    reviews.find({})
-      .toArray((err, documents) => {
-        res.send(documents);
-      })
-  })
-
-
-  //Add services by admin
+  //Add A  services by Admin
 
   app.post('/addServices', (req, res) => {
     const file = req.files.file;
@@ -102,7 +92,6 @@ client.connect(err => {
   })
 
 
-
   app.post('/placeOrder', (req, res) => {
 
     const status = req.body.status;
@@ -114,9 +103,6 @@ client.connect(err => {
     const serviceData = req.body.serviceData;
     const paymentId = req.body.paymentId;
 
-
-
-
     ordersCollection.insertOne({ name, email, service, serviceImg, status, serviceData, paymentId, details })
 
       .then(result => {
@@ -125,12 +111,25 @@ client.connect(err => {
       })
   })
 
+  // Add A user Review 
+
+  app.get('/reviews', (req, res) => {
+    reviews.find({})
+      .toArray((err, documents) => {
+        res.send(documents);
+      })
+  })
+
+
   app.post('/addReview', (req, res) => {
     reviews.insertOne(req.body)
       .then(result => {
         res.send(result.insertedCount > 0)
       })
   })
+
+
+  // Add A order By Service Id 
 
   app.get('/order/:id', (req, res) => {
     servicesCollection.find({ _id: ObjectId(req.params.id) })
@@ -139,7 +138,8 @@ client.connect(err => {
       })
   })
 
-  // Find all for admin
+  // Find all Orders Only Admin
+
   app.get('/orders', (req, res) => {
     ordersCollection.find({})
       .toArray((err, documents) => {
@@ -147,7 +147,8 @@ client.connect(err => {
       })
   })
 
-  // find specific user by email
+  // Find Specific user Orders by Email
+
   app.get('/specificOrder', (req, res) => {
     ordersCollection.find({ email: req.query.email })
       .toArray((err, documents) => {
@@ -156,9 +157,9 @@ client.connect(err => {
   })
 
   // Admin's login
+
   app.get('/admin', (req, res) => {
     const email = req.query.email;
-    // console.log(email);
     admins.find({ email })
       .toArray((err, collection) => {
         res.send(collection.length > 0)
@@ -173,7 +174,8 @@ client.connect(err => {
       })
   })
 
-  // Update Status
+  // Update A Status By Admin
+
   app.patch('/update/:id', (req, res) => {
     ordersCollection.updateOne({ _id: ObjectId(req.params.id) },
       {
